@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Blackbird Flight</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Georgia', serif;
+      background: linear-gradient(to top, #1a1a2e, #16213e);
+      color: white;
+    }
+    canvas {
+      display: block;
+    }
+    #poem {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 18px;
+      width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <div id="poem">Collect feathers to reveal your poem...</div>
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let bird = { x: 100, y: 100, size: 30 };
+    let feathers = [];
+    let clouds = [];
+    let score = 0;
+    let poemLines = [
+      "I rise on wings of memory,",
+      "Through skies of silent grace,",
+      "Each feather holds a whisper,",
+      "Of truth I dare to face."
+    ];
+    let revealed = [];
+
+    function drawBird() {
+      ctx.beginPath();
+      ctx.arc(bird.x, bird.y, bird.size, 0, Math.PI * 2);
+      ctx.fillStyle = "gold";
+      ctx.fill();
+    }
+
+    function spawnFeather() {
+      feathers.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: 20
+      });
+    }
+
+    function spawnCloud() {
+      clouds.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: 40
+      });
+    }
+
+    function drawFeathers() {
+      feathers.forEach(f => {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+        ctx.fillStyle = "lightblue";
+        ctx.fill();
+      });
+    }
+
+    function drawClouds() {
+      clouds.forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
+        ctx.fillStyle = "gray";
+        ctx.fill();
+      });
+    }
+
+    function checkCollisions() {
+      feathers = feathers.filter(f => {
+        const dx = bird.x - f.x;
+        const dy = bird.y - f.y;
+        if (Math.sqrt(dx * dx + dy * dy) < bird.size + f.size) {
+          if (score < poemLines.length) {
+            revealed.push(poemLines[score]);
+            document.getElementById("poem").innerText = revealed.join("\n");
+          }
+          score++;
+          return false;
+        }
+        return true;
+      });
+
+      clouds.forEach(c => {
+        const dx = bird.x - c.x;
+        const dy = bird.y - c.y;
+        if (Math.sqrt(dx * dx + dy * dy) < bird.size + c.size) {
+          alert("You hit a storm cloud! Game over.");
+          location.reload();
+        }
+      });
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBird();
+      drawFeathers();
+      drawClouds();
+      checkCollisions();
+      requestAnimationFrame(update);
+    }
+
+    window.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp") bird.y -= 20;
+      if (e.key === "ArrowDown") bird.y += 20;
+      if (e.key === "ArrowLeft") bird.x -= 20;
+      if (e.key === "ArrowRight") bird.x += 20;
+    });
+
+    setInterval(spawnFeather, 2000);
+    setInterval(spawnCloud, 3000);
+    update();
+  </script>
+</body>
+</html>
